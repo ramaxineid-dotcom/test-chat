@@ -1,0 +1,1479 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>wachat</title>
+<style>
+  :root {
+    --glass-border: rgba(16,138,90,0.18);
+    --glass-hi: rgba(255,255,255,0.92);
+    --text: #0d2e22;
+    --text-dim: #5b7a6c;
+    --accent: #10b981;
+    --accent-2: #059669;
+    --danger: #ef4444;
+    --bubble-out-a: #d1fae5;
+    --bubble-out-b: #a7f3d0;
+    --bubble-in: rgba(255,255,255,0.85);
+    --shadow: 0 8px 32px rgba(16,138,90,0.10), 0 2px 8px rgba(16,138,90,0.06);
+    --shadow-lg: 0 20px 60px rgba(16,138,90,0.18);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; color: var(--text);
+    font: 15px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    overflow: hidden; overscroll-behavior: none; }
+  body {
+    background:
+      radial-gradient(1000px 700px at 15% 10%, #d1fae5 0%, transparent 55%),
+      radial-gradient(900px 600px at 85% 90%, #a7f3d0 0%, transparent 50%),
+      radial-gradient(700px 500px at 50% 40%, #ecfdf5 0%, transparent 60%),
+      #f0fdf4;
+  }
+  body::before {
+    content: ''; position: fixed; inset: -20%;
+    background:
+      radial-gradient(400px 400px at 20% 30%, rgba(16,185,129,.20), transparent 60%),
+      radial-gradient(500px 500px at 80% 70%, rgba(5,150,105,.15), transparent 60%),
+      radial-gradient(300px 300px at 60% 20%, rgba(52,211,153,.18), transparent 60%);
+    filter: blur(50px); pointer-events: none; z-index: 0;
+    animation: drift 22s ease-in-out infinite alternate;
+  }
+  @keyframes drift {
+    0% { transform: translate(0,0) scale(1); }
+    100% { transform: translate(3%, -2%) scale(1.06); }
+  }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  input, textarea { font: inherit; color: inherit; outline: none;
+    background: rgba(255,255,255,0.78);
+    border: 1px solid var(--glass-border);
+    border-radius: 14px; padding: 12px 14px; width: 100%;
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    transition: border-color .2s, background .2s; }
+  input:focus, textarea:focus { border-color: var(--accent);
+    background: rgba(255,255,255,0.95); }
+  .hidden { display: none !important; }
+
+  #auth { position: fixed; inset: 0; display: grid; place-items: center;
+    padding: 24px; z-index: 10; }
+  .auth-card {
+    width: 100%; max-width: 420px; padding: 34px 30px 30px;
+    background: linear-gradient(135deg, rgba(255,255,255,.88), rgba(255,255,255,.62));
+    border: 1px solid var(--glass-border);
+    border-radius: 26px;
+    backdrop-filter: blur(30px) saturate(160%);
+    -webkit-backdrop-filter: blur(30px) saturate(160%);
+    box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255,255,255,.95);
+    position: relative; overflow: hidden;
+  }
+  .auth-card::before {
+    content: ''; position: absolute; top: -50%; right: -30%;
+    width: 300px; height: 300px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(16,185,129,.35), transparent 70%);
+    pointer-events: none;
+  }
+  .auth-card::after {
+    content: ''; position: absolute; bottom: -40%; left: -20%;
+    width: 280px; height: 280px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(52,211,153,.25), transparent 70%);
+    pointer-events: none;
+  }
+  .brand { display: flex; align-items: center; gap: 12px;
+    margin-bottom: 6px; position: relative; z-index: 1; }
+  .brand-logo {
+    width: 44px; height: 44px; border-radius: 14px;
+    background: linear-gradient(135deg, #34d399, #059669);
+    display: grid; place-items: center; font-weight: 800; color: #fff;
+    font-size: 20px; letter-spacing: -1px;
+    box-shadow: 0 6px 20px rgba(16,185,129,.45);
+  }
+  .brand h1 { margin: 0; font-size: 24px; letter-spacing: -0.6px; font-weight: 700; }
+  .brand p { margin: 0; font-size: 12px; color: var(--text-dim); }
+  .auth-form { position: relative; z-index: 1; margin-top: 22px; }
+  .auth-form label { display: block; font-size: 11px; letter-spacing: 1.2px;
+    text-transform: uppercase; color: var(--text-dim); margin: 14px 0 6px; font-weight: 700; }
+  .auth-form input { font-size: 15px; }
+  .btn-primary {
+    width: 100%; margin-top: 22px; padding: 14px;
+    border-radius: 14px; font-weight: 700; font-size: 15px; color: #fff;
+    background: linear-gradient(135deg, #34d399, #059669);
+    box-shadow: 0 8px 24px rgba(16,185,129,.35), inset 0 1px 0 rgba(255,255,255,.4);
+    transition: transform .1s, opacity .2s;
+  }
+  .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+  .btn-primary:active:not(:disabled) { transform: scale(.98); }
+  .auth-switch { margin-top: 18px; text-align: center; color: var(--text-dim);
+    font-size: 13px; position: relative; z-index: 1; }
+  .auth-switch a { color: var(--accent-2); cursor: pointer; font-weight: 700; }
+  .auth-error { margin-top: 12px; color: var(--danger); font-size: 13px;
+    min-height: 16px; position: relative; z-index: 1; }
+  .auth-hint { margin-top: 10px; font-size: 11px; color: var(--text-dim);
+    text-align: center; position: relative; z-index: 1; }
+
+  #app { position: fixed; inset: 0; display: grid;
+    grid-template-columns: 380px 1fr; z-index: 5; }
+  @media (max-width: 820px) {
+    #app { grid-template-columns: 1fr; }
+    #app[data-view="chat"] .sidebar { display: none; }
+    #app:not([data-view="chat"]) .chat-pane { display: none; }
+  }
+
+  .sidebar {
+    margin: 14px 0 14px 14px;
+    display: flex; flex-direction: column; min-height: 0;
+    border-radius: 24px; overflow: hidden;
+    background: linear-gradient(160deg, rgba(255,255,255,.82), rgba(255,255,255,.55));
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(28px) saturate(160%);
+    -webkit-backdrop-filter: blur(28px) saturate(160%);
+    box-shadow: var(--shadow), inset 0 1px 0 var(--glass-hi);
+  }
+  @media (max-width: 820px) {
+    .sidebar { margin: 0; border-radius: 0; border: 0; box-shadow: none; }
+  }
+
+  .sidebar-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 16px 12px; gap: 10px;
+    border-bottom: 1px solid rgba(16,138,90,.10);
+  }
+  .me { display: flex; align-items: center; gap: 12px;
+    min-width: 0; cursor: pointer; flex: 1; }
+  .avatar {
+    width: 42px; height: 42px; border-radius: 14px; flex-shrink: 0;
+    display: grid; place-items: center; font-weight: 700; font-size: 15px;
+    background: linear-gradient(135deg, #a7f3d0, #6ee7b7);
+    border: 1px solid rgba(16,138,90,.20);
+    color: var(--accent-2); text-transform: uppercase; overflow: hidden;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.6);
+  }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .me .name { font-weight: 700; font-size: 15px; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; }
+  .me .handle { font-size: 12px; color: var(--accent-2); font-weight: 600;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sidebar-actions { display: flex; gap: 6px; }
+  .icon-btn {
+    width: 38px; height: 38px; border-radius: 12px;
+    display: grid; place-items: center; color: var(--text-dim);
+    background: rgba(255,255,255,.55);
+    border: 1px solid var(--glass-border);
+    transition: all .15s;
+  }
+  .icon-btn:hover { background: rgba(255,255,255,.92); color: var(--accent-2);
+    border-color: rgba(16,138,90,.35); }
+  .search-wrap { padding: 12px 14px; }
+  .search-wrap input { padding: 10px 14px; border-radius: 12px;
+    font-size: 14px; background: rgba(255,255,255,.65); }
+
+  .lists { flex: 1; overflow-y: auto; min-height: 0; padding: 0 8px 8px; }
+  .chat-item {
+    display: flex; gap: 12px; padding: 12px; cursor: pointer;
+    border-radius: 16px; align-items: center;
+    transition: background .15s; margin-bottom: 2px;
+  }
+  .chat-item:hover { background: rgba(255,255,255,.65); }
+  .chat-item.active {
+    background: linear-gradient(135deg, rgba(209,250,229,.9), rgba(167,243,208,.7));
+    border: 1px solid rgba(16,138,90,.28);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.6);
+  }
+  .chat-item .meta { flex: 1; min-width: 0; }
+  .chat-item .row1 { display: flex; justify-content: space-between;
+    gap: 8px; align-items: baseline; }
+  .chat-item .title { font-weight: 700; font-size: 14.5px; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; }
+  .chat-item .time { font-size: 11px; color: var(--text-dim); flex-shrink: 0; }
+  .chat-item .row2 { display: flex; justify-content: space-between;
+    gap: 8px; align-items: center; margin-top: 2px; }
+  .chat-item .preview { font-size: 13px; color: var(--text-dim);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
+  .empty-state { padding: 40px 24px; text-align: center;
+    color: var(--text-dim); font-size: 13px; }
+
+  .chat-pane {
+    display: flex; flex-direction: column; min-height: 0;
+    margin: 14px; border-radius: 24px; overflow: hidden;
+    background: linear-gradient(160deg, rgba(255,255,255,.72), rgba(255,255,255,.50));
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(28px) saturate(160%);
+    -webkit-backdrop-filter: blur(28px) saturate(160%);
+    box-shadow: var(--shadow), inset 0 1px 0 var(--glass-hi);
+    position: relative;
+  }
+  @media (max-width: 820px) {
+    .chat-pane { margin: 0; border-radius: 0; border: 0; box-shadow: none; }
+  }
+  .chat-head {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 18px; border-bottom: 1px solid rgba(16,138,90,.10);
+    flex-shrink: 0; min-height: 64px;
+    background: rgba(255,255,255,.55);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    position: relative; z-index: 2;
+  }
+  .chat-head .back { display: none; }
+  @media (max-width: 820px) { .chat-head .back { display: grid; } }
+  .chat-head .meta { flex: 1; min-width: 0; }
+  .chat-head .title { font-weight: 700; font-size: 16px; }
+  .chat-head .sub { font-size: 12px; color: var(--text-dim); }
+
+  .messages {
+    flex: 1; overflow-y: auto; padding: 20px 18px 12px; min-height: 0;
+    display: flex; flex-direction: column; gap: 4px;
+    background-size: cover; background-position: center;
+    position: relative;
+  }
+  .messages::before {
+    content: ''; position: absolute; inset: 0;
+    background: rgba(255,255,255,0.55); pointer-events: none; z-index: 0;
+  }
+  .messages.no-wallpaper::before { display: none; }
+  .messages > * { position: relative; z-index: 1; }
+
+  .msg {
+    max-width: min(560px, 78%); padding: 9px 13px 7px;
+    border-radius: 16px; position: relative;
+    word-wrap: break-word; overflow-wrap: anywhere;
+    animation: pop .14s ease-out;
+    box-shadow: 0 2px 10px rgba(16,138,90,.08);
+  }
+  @keyframes pop {
+    from { opacity: 0; transform: translateY(6px) scale(.98); }
+    to { opacity: 1; transform: none; }
+  }
+  .msg.out {
+    align-self: flex-end;
+    background: linear-gradient(135deg, var(--bubble-out-a), var(--bubble-out-b));
+    border: 1px solid rgba(16,138,90,.20);
+    border-bottom-right-radius: 4px;
+  }
+  .msg.in {
+    align-self: flex-start;
+    background: var(--bubble-in);
+    border: 1px solid rgba(16,138,90,.10);
+    border-bottom-left-radius: 4px;
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  }
+  .msg + .msg.same-sender.out { border-top-right-radius: 4px; }
+  .msg + .msg.same-sender.in { border-top-left-radius: 4px; }
+  .msg .sender { font-size: 12px; color: var(--accent-2); font-weight: 700;
+    margin-bottom: 3px; }
+  .msg .body { white-space: pre-wrap; font-size: 14.5px; }
+  .msg .body a { color: var(--accent-2); text-decoration: underline; }
+  .msg .foot { display: flex; justify-content: flex-end; align-items: center;
+    gap: 5px; font-size: 10.5px; color: var(--text-dim); margin-top: 3px; }
+  .msg .ticks { font-size: 11px; color: rgba(13,46,34,.35); }
+  .msg .ticks.read { color: var(--accent-2); }
+  .msg .attach { display: block; max-width: 100%; border-radius: 12px;
+    margin: 6px 0 2px; }
+  .msg .attach-file { display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(16,138,90,.10); padding: 8px 12px; border-radius: 10px;
+    font-size: 12.5px; color: var(--text); text-decoration: none;
+    margin: 6px 0 2px; }
+  .day-sep { align-self: center; background: rgba(255,255,255,.88);
+    border: 1px solid rgba(16,138,90,.15);
+    color: var(--text-dim); font-size: 11px; padding: 5px 12px;
+    border-radius: 10px; margin: 12px 0 8px;
+    letter-spacing: 0.4px; text-transform: uppercase; font-weight: 700; }
+  .typing-indicator { font-size: 12px; color: var(--text-dim);
+    padding: 0 20px 6px; min-height: 18px; font-style: italic;
+    position: relative; z-index: 1; }
+
+  .composer {
+    display: flex; gap: 8px; padding: 12px 16px;
+    border-top: 1px solid rgba(16,138,90,.10);
+    align-items: flex-end; flex-shrink: 0;
+    background: rgba(255,255,255,.65);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    position: relative; z-index: 2;
+  }
+  .composer textarea {
+    flex: 1; resize: none; min-height: 44px; max-height: 140px;
+    padding: 12px 16px; border-radius: 22px; line-height: 1.4;
+    font-size: 14.5px; background: rgba(255,255,255,.9);
+  }
+  .composer .send {
+    width: 46px; height: 46px; border-radius: 50%;
+    background: linear-gradient(135deg, #34d399, #059669);
+    color: #fff; display: grid; place-items: center; flex-shrink: 0;
+    box-shadow: 0 6px 18px rgba(16,185,129,.40), inset 0 1px 0 rgba(255,255,255,.4);
+    transition: transform .1s;
+  }
+  .composer .send:active { transform: scale(.92); }
+  .composer .attach-btn {
+    width: 46px; height: 46px; border-radius: 50%;
+    display: grid; place-items: center; color: var(--text-dim);
+    background: rgba(255,255,255,.85);
+    border: 1px solid var(--glass-border);
+  }
+  .composer .attach-btn:hover { color: var(--accent-2); background: #fff; }
+
+  .modal-backdrop {
+    position: fixed; inset: 0; background: rgba(13,46,34,.30);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    display: grid; place-items: center; z-index: 40; padding: 20px;
+  }
+  .modal {
+    width: 100%; max-width: 460px; padding: 24px;
+    max-height: 85vh; display: flex; flex-direction: column;
+    background: linear-gradient(135deg, rgba(255,255,255,.94), rgba(255,255,255,.78));
+    border: 1px solid var(--glass-border);
+    border-radius: 22px;
+    backdrop-filter: blur(28px) saturate(160%);
+    -webkit-backdrop-filter: blur(28px) saturate(160%);
+    box-shadow: var(--shadow-lg), inset 0 1px 0 var(--glass-hi);
+    overflow: hidden;
+  }
+  .modal h2 { margin: 0 0 4px; font-size: 19px; font-weight: 700; }
+  .modal p.hint { margin: 0 0 16px; font-size: 13px; color: var(--text-dim); }
+  .modal .search-row { margin-bottom: 14px; }
+  .modal .results { flex: 1; overflow-y: auto; min-height: 140px;
+    border: 1px solid rgba(16,138,90,.12); border-radius: 14px;
+    background: rgba(255,255,255,.5); }
+  .result-item { display: flex; gap: 12px; padding: 12px 14px; cursor: pointer;
+    align-items: center; border-bottom: 1px solid rgba(16,138,90,.06);
+    transition: background .12s; }
+  .result-item:last-child { border-bottom: 0; }
+  .result-item:hover { background: rgba(209,250,229,.5); }
+  .result-item .meta { flex: 1; min-width: 0; }
+  .result-item .name { font-weight: 700; font-size: 14px; }
+  .result-item .user { font-size: 12px; color: var(--accent-2); margin-top: 1px; }
+  .modal .actions { display: flex; gap: 8px; margin-top: 16px;
+    justify-content: flex-end; }
+  .modal .btn-ghost { padding: 9px 16px; border-radius: 12px;
+    color: var(--text-dim); background: rgba(255,255,255,.7);
+    border: 1px solid var(--glass-border); }
+  .modal .btn-ghost:hover { color: var(--accent-2); background: #fff; }
+
+  .settings-body { flex: 1; overflow-y: auto; padding-right: 4px; }
+  .settings-section { margin-bottom: 20px; }
+  .settings-section h3 { margin: 0 0 10px; font-size: 13px;
+    text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim);
+    font-weight: 700; }
+  .pfp-upload { display: flex; align-items: center; gap: 16px;
+    margin-bottom: 18px; }
+  .pfp-preview {
+    width: 76px; height: 76px; border-radius: 22px;
+    background: linear-gradient(135deg, #a7f3d0, #6ee7b7);
+    display: grid; place-items: center; overflow: hidden;
+    font-size: 26px; font-weight: 700; color: var(--accent-2);
+    border: 2px solid rgba(16,138,90,.20);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.6);
+  }
+  .pfp-preview img { width: 100%; height: 100%; object-fit: cover; }
+  .pfp-upload .btn-upload { padding: 9px 14px; border-radius: 10px;
+    background: linear-gradient(135deg, #34d399, #059669);
+    color: #fff; font-weight: 600; font-size: 13px; }
+  .settings-field { margin-bottom: 14px; }
+  .settings-field label { display: block; font-size: 11px;
+    letter-spacing: 1px; text-transform: uppercase; color: var(--text-dim);
+    margin-bottom: 6px; font-weight: 700; }
+  .settings-field input { background: rgba(255,255,255,.85); }
+  .settings-actions { display: flex; gap: 8px; justify-content: flex-end;
+    margin-top: 12px; }
+  .settings-msg { font-size: 12px; margin-top: 6px; min-height: 16px; }
+  .settings-msg.ok { color: var(--accent-2); }
+  .settings-msg.err { color: var(--danger); }
+
+  .wp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .wp-cell {
+    aspect-ratio: 1; border-radius: 14px; cursor: pointer;
+    border: 2px solid transparent; background-size: cover;
+    background-position: center; position: relative; overflow: hidden;
+    transition: border-color .15s, transform .1s;
+  }
+  .wp-cell:hover { transform: scale(1.03); }
+  .wp-cell.selected { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(16,185,129,.20); }
+  .wp-cell.none {
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    display: grid; place-items: center; font-size: 12px;
+    color: var(--text-dim); font-weight: 600;
+  }
+  .wp-cell.upload {
+    display: grid; place-items: center; cursor: pointer;
+    background: rgba(255,255,255,.7); border: 1.5px dashed rgba(16,138,90,.35);
+    font-size: 12px; color: var(--accent-2); font-weight: 700;
+  }
+  .wp-cell input[type=file] { display: none; }
+
+  #toasts { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; gap: 8px; z-index: 60;
+    pointer-events: none; align-items: center; }
+  .toast {
+    background: rgba(255,255,255,.94);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    color: var(--text); padding: 11px 18px; border-radius: 14px;
+    font-size: 13px; box-shadow: 0 10px 30px rgba(16,138,90,.25);
+    max-width: 90vw; text-align: center; font-weight: 500;
+  }
+  .toast.err { border-color: rgba(239,68,68,.5); color: var(--danger); }
+
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: rgba(16,138,90,.20); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(16,138,90,.35); }
+  ::-webkit-scrollbar-track { background: transparent; }
+</style>
+</head>
+<body>
+
+<div id="auth">
+  <div class="auth-card">
+    <div class="brand">
+      <div class="brand-logo">w</div>
+      <div>
+        <h1>wachat</h1>
+        <p>liquid glass · green</p>
+      </div>
+    </div>
+
+    <form id="loginForm" class="auth-form">
+      <label for="loginIdentifier">Email atau Username</label>
+      <input id="loginIdentifier" autocomplete="username" required />
+      <label for="loginPass">Password</label>
+      <input id="loginPass" type="password" autocomplete="current-password" required minlength="6" />
+      <button class="btn-primary" type="submit">Masuk</button>
+      <div class="auth-error" id="loginErr"></div>
+      <div class="auth-switch">Belum punya akun? <a id="toRegister">Daftar</a></div>
+    </form>
+
+    <form id="registerForm" class="auth-form hidden">
+      <label for="regEmail">Email</label>
+      <input id="regEmail" type="email" autocomplete="email" required />
+      <label for="regUsername">Username</label>
+      <input id="regUsername" autocomplete="username" required minlength="3" maxlength="20" pattern="[a-zA-Z0-9_]{3,20}" />
+      <div class="auth-hint">Huruf, angka, underscore. 3–20 karakter.</div>
+      <label for="regPass">Password</label>
+      <input id="regPass" type="password" autocomplete="new-password" required minlength="6" />
+      <button class="btn-primary" type="submit">Buat akun</button>
+      <div class="auth-error" id="regErr"></div>
+      <div class="auth-switch">Sudah punya akun? <a id="toLogin">Masuk</a></div>
+    </form>
+  </div>
+</div>
+
+<div id="app" class="hidden" data-view="list">
+  <aside class="sidebar">
+    <div class="sidebar-head">
+      <div class="me" id="meBtn">
+        <div class="avatar" id="myAvatar">?</div>
+        <div style="min-width:0;">
+          <div class="name" id="myName">—</div>
+          <div class="handle" id="myHandle">@—</div>
+        </div>
+      </div>
+      <div class="sidebar-actions">
+        <button class="icon-btn" id="newChatBtn" title="Cari user">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+        <button class="icon-btn" id="logoutBtn" title="Keluar">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="search-wrap">
+      <input id="searchInput" placeholder="Cari chat…" />
+    </div>
+    <div class="lists" id="chatList"></div>
+  </aside>
+
+  <section class="chat-pane">
+    <div class="chat-head hidden" id="chatHead">
+      <button class="icon-btn back" id="backBtn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      </button>
+      <div class="avatar" id="peerAvatar">?</div>
+      <div class="meta">
+        <div class="title" id="peerName">—</div>
+        <div class="sub" id="peerStatus">—</div>
+      </div>
+      <button class="icon-btn" id="wallpaperBtn" title="Ganti wallpaper">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+      </button>
+    </div>
+
+    <div id="emptyState" class="empty-state" style="flex:1;display:grid;place-items:center;">
+      Klik + untuk cari user, atau pilih chat.
+    </div>
+
+    <div class="messages hidden" id="messages"></div>
+    <div class="typing-indicator hidden" id="typingBar"></div>
+
+    <div class="composer hidden" id="composer">
+      <button class="attach-btn" id="attachBtn" title="Lampirkan file">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+      </button>
+      <input type="file" id="fileInput" class="hidden" accept="image/*,video/*,audio/*,application/pdf,text/plain" />
+      <textarea id="messageInput" rows="1" placeholder="Tulis pesan…"></textarea>
+      <button class="send" id="sendBtn" title="Kirim">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
+  </section>
+</div>
+
+<div class="modal-backdrop hidden" id="newChatModal">
+  <div class="modal">
+    <h2>Cari user</h2>
+    <p class="hint">Ketik username untuk memulai chat.</p>
+    <div class="search-row">
+      <input id="userSearchInput" placeholder="username…" autocomplete="off" />
+    </div>
+    <div class="results" id="userResults">
+      <div class="empty-state">Ketik username.</div>
+    </div>
+    <div class="actions">
+      <button class="btn-ghost" id="cancelNewChat">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop hidden" id="settingsModal">
+  <div class="modal">
+    <h2>Pengaturan akun</h2>
+    <p class="hint">Ubah foto profil dan username.</p>
+    <div class="settings-body">
+      <div class="settings-section">
+        <h3>Foto profil</h3>
+        <div class="pfp-upload">
+          <div class="pfp-preview" id="pfpPreview">?</div>
+          <div>
+            <button class="btn-upload" id="pfpUploadBtn">Unggah foto</button>
+            <div style="font-size:11px;color:var(--text-dim);margin-top:6px;">Maks 5 MB · JPG/PNG/WebP</div>
+          </div>
+          <input type="file" id="pfpInput" class="hidden" accept="image/*" />
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>Username</h3>
+        <div class="settings-field">
+          <label for="settingsUsername">Username baru</label>
+          <input id="settingsUsername" maxlength="20" minlength="3" />
+        </div>
+        <div class="settings-actions">
+          <button class="btn-primary" id="saveUsernameBtn" style="margin:0;padding:10px 18px;width:auto;">Simpan username</button>
+        </div>
+        <div class="settings-msg" id="usernameMsg"></div>
+      </div>
+    </div>
+
+    <div class="actions" style="margin-top:16px;">
+      <button class="btn-ghost" id="closeSettings">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop hidden" id="wallpaperModal">
+  <div class="modal">
+    <h2>Wallpaper chat</h2>
+    <p class="hint">Pilih wallpaper atau unggah sendiri.</p>
+    <div class="wp-grid" id="wpGrid"></div>
+    <div class="actions" style="margin-top:16px;">
+      <button class="btn-ghost" id="closeWallpaper">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+  signOut, onAuthStateChanged, updateProfile
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {
+  getDatabase, ref, set, get, update, remove, push, onValue,
+  query, orderByChild, limitToLast, onDisconnect
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import {
+  getStorage, ref as storageRef, uploadBytes, getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA_8XnX276ELqT7jeKcjGP6_4BjLgO7p-Y",
+  authDomain: "chat-82a8d.firebaseapp.com",
+  projectId: "chat-82a8d",
+  storageBucket: "chat-82a8d.firebasestorage.app",
+  messagingSenderId: "372985917068",
+  appId: "1:372985917068:web:15f59c4f810ccd424755a9",
+  databaseURL: "https://chat-82a8d-default-rtdb.asia-southeast1.firebasedatabase.app"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+const storage = getStorage(app);
+
+const state = {
+  me: null,
+  chats: {},
+  activeChatId: null,
+  messages: [],
+  unsubChats: null,
+  unsubMessages: null,
+  unsubPeer: null,
+  unsubTyping: null,
+  wallpaper: null,
+  myDisconnect: null,
+  heartbeat: null
+};
+
+const $ = (id) => document.getElementById(id);
+const el = (tag, cls, text) => {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text !== undefined) n.textContent = text;
+  return n;
+};
+const initials = (s) => (s || '?').trim().slice(0, 2).toUpperCase();
+
+function toast(msg, isErr) {
+  const t = el('div', 'toast' + (isErr ? ' err' : ''), msg);
+  $('toasts').appendChild(t);
+  setTimeout(() => t.remove(), 3400);
+}
+
+function authErrMsg(code) {
+  const map = {
+    'auth/invalid-email': 'Email tidak valid.',
+    'auth/user-not-found': 'Akun tidak ditemukan.',
+    'auth/wrong-password': 'Password salah.',
+    'auth/invalid-credential': 'Email/username atau password salah.',
+    'auth/email-already-in-use': 'Email sudah terdaftar.',
+    'auth/weak-password': 'Password minimal 6 karakter.',
+    'auth/operation-not-allowed': 'Email/Password belum diaktifkan di Firebase Console.',
+    'auth/network-request-failed': 'Koneksi ke Firebase terblokir.',
+    'auth/too-many-requests': 'Terlalu banyak percobaan. Tunggu sebentar.',
+    'auth/missing-password': 'Password wajib diisi.'
+  };
+  return map[code] || code || 'Terjadi kesalahan.';
+}
+
+function fmtTime(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  const now = new Date();
+  if (d.toDateString() === now.toDateString())
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const y = new Date(now); y.setDate(now.getDate() - 1);
+  if (d.toDateString() === y.toDateString()) return 'Kemarin';
+  return d.toLocaleDateString([], { day: '2-digit', month: 'short' });
+}
+
+function fmtDaySep(ts) {
+  const d = new Date(ts);
+  const now = new Date();
+  if (d.toDateString() === now.toDateString()) return 'Hari ini';
+  const y = new Date(now); y.setDate(now.getDate() - 1);
+  if (d.toDateString() === y.toDateString()) return 'Kemarin';
+  return d.toLocaleDateString([], { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+
+function linkify(text) {
+  return escapeHtml(text).replace(/(https?:\/\/[^\s]+)/g,
+    '<a href="$1" target="_blank" rel="noopener">$1</a>');
+}
+
+function validUsername(u) {
+  return /^[a-zA-Z0-9_]{3,20}$/.test(u);
+}
+
+function chatIdFor(a, b) {
+  return [a, b].sort().join('__');
+}
+
+$('toRegister').onclick = () => {
+  $('loginForm').classList.add('hidden');
+  $('registerForm').classList.remove('hidden');
+  $('regErr').textContent = '';
+};
+$('toLogin').onclick = () => {
+  $('registerForm').classList.add('hidden');
+  $('loginForm').classList.remove('hidden');
+  $('loginErr').textContent = '';
+};
+
+$('registerForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const btn = e.target.querySelector('button');
+  btn.disabled = true;
+  $('regErr').textContent = '';
+
+  const email = $('regEmail').value.trim();
+  const username = $('regUsername').value.trim();
+  const pass = $('regPass').value;
+
+  let createdUid = null;
+  try {
+    if (!validUsername(username))
+      throw new Error('Username: huruf/angka/underscore, 3–20 karakter.');
+    const unameLower = username.toLowerCase();
+
+    const unameSnap = await get(ref(db, 'usernames/' + unameLower));
+    if (unameSnap.exists()) throw new Error('Username sudah dipakai.');
+
+    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+    createdUid = cred.user.uid;
+    await updateProfile(cred.user, { displayName: username });
+
+    await set(ref(db, 'usernames/' + unameLower), { uid: createdUid });
+    await set(ref(db, 'users/' + createdUid), {
+      uid: createdUid,
+      email,
+      emailLower: email.toLowerCase(),
+      username,
+      usernameLower: unameLower,
+      displayName: username,
+      photoURL: null,
+      createdAt: Date.now(),
+      lastSeen: Date.now(),
+      online: true,
+      wallpaper: null
+    });
+    toast('Akun dibuat. Selamat datang, @' + username);
+  } catch (err) {
+    if (createdUid) {
+      try { await remove(ref(db, 'users/' + createdUid)); } catch {}
+      try { await remove(ref(db, 'usernames/' + username.toLowerCase())); } catch {}
+      try { await auth.currentUser?.delete(); } catch {}
+    }
+    const code = err?.code || '';
+    $('regErr').textContent = code ? authErrMsg(code) : (err?.message || 'Gagal daftar.');
+  } finally {
+    btn.disabled = false;
+  }
+};
+
+$('loginForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const btn = e.target.querySelector('button');
+  btn.disabled = true;
+  $('loginErr').textContent = '';
+  const idRaw = $('loginIdentifier').value.trim();
+  const pass = $('loginPass').value;
+  try {
+    let emailToUse = idRaw;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(idRaw)) {
+      const unameSnap = await get(ref(db, 'usernames/' + idRaw.toLowerCase()));
+      if (!unameSnap.exists()) throw { code: 'auth/user-not-found' };
+      const uid = unameSnap.val().uid;
+      const uSnap = await get(ref(db, 'users/' + uid));
+      if (!uSnap.exists()) throw { code: 'auth/user-not-found' };
+      emailToUse = uSnap.val().email;
+    }
+    await signInWithEmailAndPassword(auth, emailToUse, pass);
+  } catch (err) {
+    $('loginErr').textContent = authErrMsg(err?.code);
+  } finally {
+    btn.disabled = false;
+  }
+};
+
+$('logoutBtn').onclick = async () => {
+  if (state.me) {
+    try {
+      await set(ref(db, 'users/' + state.me.uid + '/online'), false);
+      await set(ref(db, 'users/' + state.me.uid + '/lastSeen'), Date.now());
+    } catch {}
+    if (state.myDisconnect) {
+      try { await state.myDisconnect.cancel(); } catch {}
+    }
+  }
+  await signOut(auth);
+};
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    teardown();
+    state.me = null;
+    state.chats = {};
+    state.activeChatId = null;
+    state.messages = [];
+    $('app').classList.add('hidden');
+    $('auth').classList.remove('hidden');
+    return;
+  }
+
+  let snap = await get(ref(db, 'users/' + user.uid));
+  if (!snap.exists()) {
+    const fallbackName = user.displayName || (user.email || '').split('@')[0];
+    const fallbackLower = fallbackName.toLowerCase();
+    await set(ref(db, 'users/' + user.uid), {
+      uid: user.uid,
+      email: user.email,
+      emailLower: (user.email || '').toLowerCase(),
+      username: fallbackName,
+      usernameLower: fallbackLower,
+      displayName: fallbackName,
+      photoURL: user.photoURL || null,
+      createdAt: Date.now(),
+      lastSeen: Date.now(),
+      online: true,
+      wallpaper: null
+    });
+    await set(ref(db, 'usernames/' + fallbackLower), { uid: user.uid });
+    snap = await get(ref(db, 'users/' + user.uid));
+  }
+  const data = snap.val();
+  state.me = { uid: user.uid, ...data };
+  state.wallpaper = data.wallpaper || null;
+
+  const onlineRef = ref(db, 'users/' + user.uid + '/online');
+  await set(onlineRef, true);
+  state.myDisconnect = onDisconnect(onlineRef).set(false);
+  await set(ref(db, 'users/' + user.uid + '/lastSeen'), Date.now());
+  clearInterval(state.heartbeat);
+  state.heartbeat = setInterval(() => {
+    if (state.me) set(ref(db, 'users/' + state.me.uid + '/lastSeen'), Date.now()).catch(() => {});
+  }, 30000);
+
+  $('auth').classList.add('hidden');
+  $('app').classList.remove('hidden');
+  applyMeToSidebar();
+  subscribeChats();
+});
+
+function applyMeToSidebar() {
+  $('myName').textContent = state.me.displayName || state.me.username || 'User';
+  $('myHandle').textContent = '@' + (state.me.username || 'user');
+  const av = $('myAvatar');
+  if (state.me.photoURL) av.innerHTML = `<img src="${escapeHtml(state.me.photoURL)}" alt="" />`;
+  else av.textContent = initials(state.me.displayName || state.me.username);
+}
+
+function teardown() {
+  state.unsubChats?.(); state.unsubChats = null;
+  state.unsubMessages?.(); state.unsubMessages = null;
+  state.unsubPeer?.(); state.unsubPeer = null;
+  state.unsubTyping?.(); state.unsubTyping = null;
+  clearInterval(state.heartbeat);
+}
+
+function subscribeChats() {
+  state.unsubChats?.();
+  const listRef = ref(db, 'chatsByUser/' + state.me.uid);
+  state.unsubChats = onValue(listRef, async (snap) => {
+    const ids = snap.exists() ? Object.keys(snap.val()) : [];
+    const next = {};
+    await Promise.all(ids.map(async (cid) => {
+      const cSnap = await get(ref(db, 'chats/' + cid));
+      if (!cSnap.exists()) return;
+      const c = cSnap.val();
+      let peer = null;
+      if (c.kind === 'direct') {
+        const peerId = Object.keys(c.memberIds || {}).find(u => u !== state.me.uid);
+        if (peerId) {
+          const pSnap = await get(ref(db, 'users/' + peerId));
+          peer = pSnap.exists() ? pSnap.val() : { uid: peerId, displayName: peerId };
+        }
+      }
+      next[cid] = { id: cid, ...c, peer };
+    }));
+    state.chats = next;
+    renderChatList();
+  });
+}
+
+function renderChatList() {
+  const list = $('chatList');
+  const filter = $('searchInput').value.trim().toLowerCase();
+  list.innerHTML = '';
+
+  const arr = Object.values(state.chats).sort((a, b) => {
+    const ta = a.lastMessage?.createdAt || a.updatedAt || 0;
+    const tb = b.lastMessage?.createdAt || b.updatedAt || 0;
+    return tb - ta;
+  });
+
+  const visible = arr.filter(c => {
+    if (!filter) return true;
+    const t = c.kind === 'direct'
+      ? (c.peer?.displayName || c.peer?.username || '')
+      : (c.name || '');
+    return t.toLowerCase().includes(filter);
+  });
+
+  if (!visible.length) {
+    list.appendChild(el('div', 'empty-state',
+      arr.length ? 'Tidak ada hasil.' : 'Belum ada chat. Klik + untuk cari user.'));
+    return;
+  }
+
+  for (const c of visible) {
+    const title = c.kind === 'direct'
+      ? (c.peer?.displayName || c.peer?.username || 'User')
+      : (c.name || 'Grup');
+    const handle = c.kind === 'direct' && c.peer?.username
+      ? '@' + c.peer.username : '';
+
+    const item = el('div', 'chat-item' + (c.id === state.activeChatId ? ' active' : ''));
+    const av = el('div', 'avatar');
+    if (c.kind === 'direct' && c.peer?.photoURL)
+      av.innerHTML = `<img src="${escapeHtml(c.peer.photoURL)}" alt="" />`;
+    else av.textContent = initials(title);
+
+    const meta = el('div', 'meta');
+    const row1 = el('div', 'row1');
+    row1.appendChild(el('div', 'title', title));
+    row1.appendChild(el('div', 'time', fmtTime(c.lastMessage?.createdAt || c.updatedAt)));
+
+    const row2 = el('div', 'row2');
+    let preview = '';
+    if (c.lastMessage) {
+      const who = c.lastMessage.senderId === state.me.uid ? 'Kamu: ' : '';
+      preview = who + (c.lastMessage.body || (c.lastMessage.attachment ? '📎 Lampiran' : ''));
+    }
+    row2.appendChild(el('div', 'preview',
+      handle ? handle + ' · ' + (preview || 'Belum ada pesan') : (preview || 'Belum ada pesan')));
+
+    meta.append(row1, row2);
+    item.append(av, meta);
+    item.onclick = () => openChat(c.id);
+    list.appendChild(item);
+  }
+}
+
+$('searchInput').oninput = renderChatList;
+
+async function openChat(chatId) {
+  state.activeChatId = chatId;
+  $('app').dataset.view = 'chat';
+  renderChatList();
+
+  const chat = state.chats[chatId];
+  if (!chat) return;
+
+  const title = chat.kind === 'direct'
+    ? (chat.peer?.displayName || chat.peer?.username || 'User')
+    : (chat.name || 'Grup');
+  $('peerName').textContent = title;
+  const handle = chat.kind === 'direct' && chat.peer?.username ? '@' + chat.peer.username : '';
+  $('peerStatus').textContent = handle || `${Object.keys(chat.memberIds || {}).length} anggota`;
+  const pav = $('peerAvatar');
+  if (chat.kind === 'direct' && chat.peer?.photoURL)
+    pav.innerHTML = `<img src="${escapeHtml(chat.peer.photoURL)}" alt="" />`;
+  else pav.textContent = initials(title);
+
+  $('chatHead').classList.remove('hidden');
+  $('emptyState').style.display = 'none';
+  $('messages').classList.remove('hidden');
+  $('composer').classList.remove('hidden');
+  $('typingBar').classList.remove('hidden');
+
+  applyWallpaper();
+  subscribePeerPresence(chat);
+  subscribeMessages(chatId);
+  subscribeTyping(chatId);
+}
+
+function applyWallpaper() {
+  const box = $('messages');
+  const wp = state.wallpaper;
+  if (wp && wp.startsWith('gradient:')) {
+    const parts = wp.slice(9).split('|');
+    box.style.backgroundImage = 'none';
+    box.style.background = parts.join(', ');
+    box.classList.remove('no-wallpaper');
+  } else if (wp && wp.startsWith('data:image/')) {
+    box.style.background = '';
+    box.style.backgroundImage = `url("${wp}")`;
+    box.style.backgroundSize = 'cover';
+    box.style.backgroundPosition = 'center';
+    box.classList.remove('no-wallpaper');
+  } else {
+    box.style.backgroundImage = '';
+    box.style.background = '';
+    box.classList.add('no-wallpaper');
+  }
+}
+
+function subscribePeerPresence(chat) {
+  state.unsubPeer?.();
+  state.unsubPeer = null;
+  if (chat.kind !== 'direct' || !chat.peer?.uid) return;
+  state.unsubPeer = onValue(ref(db, 'users/' + chat.peer.uid), (snap) => {
+    if (!snap.exists()) return;
+    const u = snap.val();
+    const h = u.username ? '@' + u.username : '';
+    const stateText = u.online ? 'online' : 'terakhir dilihat ' + fmtTime(u.lastSeen);
+    $('peerStatus').textContent = h ? h + ' · ' + stateText : stateText;
+  });
+}
+
+function subscribeMessages(chatId) {
+  state.unsubMessages?.();
+  const msgRef = query(ref(db, 'messages/' + chatId), orderByChild('createdAt'), limitToLast(200));
+  state.unsubMessages = onValue(msgRef, (snap) => {
+    const arr = [];
+    snap.forEach(d => { arr.push({ id: d.key, ...d.val() }); });
+    state.messages = arr;
+    renderMessages();
+    markRead(chatId);
+  });
+}
+
+function renderMessages() {
+  const box = $('messages');
+  box.innerHTML = '';
+  if (!state.messages.length) {
+    box.appendChild(el('div', 'empty-state', 'Belum ada pesan.'));
+    return;
+  }
+
+  let lastDay = '';
+  let lastSender = null;
+  for (const m of state.messages) {
+    const ts = new Date(m.createdAt || Date.now());
+    const dayKey = ts.toDateString();
+    if (dayKey !== lastDay) {
+      box.appendChild(el('div', 'day-sep', fmtDaySep(ts)));
+      lastDay = dayKey;
+      lastSender = null;
+    }
+    const out = m.senderId === state.me.uid;
+    const cls = 'msg ' + (out ? 'out' : 'in') + (lastSender === m.senderId ? ' same-sender' : '');
+    const node = el('div', cls);
+    node.dataset.id = m.id;
+
+    if (!out && lastSender !== m.senderId) {
+      node.appendChild(el('div', 'sender', m.senderName || 'User'));
+    }
+
+    if (!m.deleted && m.body) {
+      const body = el('div', 'body');
+      body.innerHTML = linkify(m.body);
+      node.appendChild(body);
+    }
+
+    if (m.attachment) {
+      if (m.attachment.mime?.startsWith('image/')) {
+        const img = el('img', 'attach'); img.src = m.attachment.url; img.alt = '';
+        node.appendChild(img);
+      } else if (m.attachment.mime?.startsWith('video/')) {
+        const v = document.createElement('video');
+        v.className = 'attach'; v.controls = true; v.src = m.attachment.url;
+        node.appendChild(v);
+      } else if (m.attachment.mime?.startsWith('audio/')) {
+        const a = document.createElement('audio');
+        a.className = 'attach'; a.controls = true; a.src = m.attachment.url;
+        node.appendChild(a);
+      } else {
+        const a = el('a', 'attach-file', '📎 ' + (m.attachment.name || 'file'));
+        a.href = m.attachment.url; a.target = '_blank'; a.rel = 'noopener';
+        node.appendChild(a);
+      }
+    }
+
+    const foot = el('div', 'foot');
+    foot.appendChild(el('span', '', fmtTime(m.createdAt)));
+    if (out) {
+      const ticks = el('span', 'ticks', '✓');
+      if (m.readBy && Object.keys(m.readBy).length > 1) ticks.classList.add('read');
+      foot.appendChild(ticks);
+    }
+    node.appendChild(foot);
+
+    box.appendChild(node);
+    lastSender = m.senderId;
+  }
+  box.scrollTop = box.scrollHeight;
+}
+
+async function markRead(chatId) {
+  if (!state.messages.length) return;
+  const last = state.messages[state.messages.length - 1];
+  if (!last || last.senderId === state.me.uid) return;
+  if (last.readBy && last.readBy[state.me.uid]) return;
+  try {
+    await update(ref(db, `messages/${chatId}/${last.id}/readBy`), { [state.me.uid]: true });
+  } catch {}
+}
+
+let typingTimeout = null;
+let typingActive = false;
+
+$('messageInput').addEventListener('input', function () {
+  if (!state.activeChatId) return;
+  const typingRef = ref(db, `chats/${state.activeChatId}/typing/${state.me.uid}`);
+  if (!typingActive) {
+    typingActive = true;
+    set(typingRef, true).catch(() => {});
+  }
+  clearTimeout(typingTimeout);
+  typingTimeout = setTimeout(() => {
+    typingActive = false;
+    remove(typingRef).catch(() => {});
+  }, 1800);
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 140) + 'px';
+});
+
+function subscribeTyping(chatId) {
+  state.unsubTyping?.();
+  state.unsubTyping = onValue(ref(db, 'chats/' + chatId + '/typing'), (snap) => {
+    const bar = $('typingBar');
+    const data = snap.exists() ? snap.val() : {};
+    const typers = Object.keys(data).filter(uid => uid !== state.me.uid && data[uid]);
+    if (!typers.length) { bar.textContent = ''; return; }
+    bar.textContent = typers.length === 1 ? 'sedang mengetik…' : typers.length + ' orang mengetik…';
+  });
+}
+
+$('sendBtn').onclick = sendMessage;
+$('messageInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+
+async function sendMessage() {
+  const input = $('messageInput');
+  const body = input.value.trim();
+  if (!body || !state.activeChatId) return;
+  input.value = '';
+  input.style.height = 'auto';
+  const typingRef = ref(db, `chats/${state.activeChatId}/typing/${state.me.uid}`);
+  if (typingActive) { typingActive = false; remove(typingRef).catch(() => {}); }
+  await postMessage({ body });
+}
+
+async function postMessage(payload) {
+  const chatId = state.activeChatId;
+  const msgRef = push(ref(db, 'messages/' + chatId));
+  await set(msgRef, {
+    senderId: state.me.uid,
+    senderName: state.me.displayName || state.me.username || 'User',
+    body: payload.body || null,
+    attachment: payload.attachment || null,
+    createdAt: Date.now(),
+    readBy: { [state.me.uid]: true },
+    deleted: false
+  });
+  await update(ref(db, 'chats/' + chatId), {
+    lastMessage: {
+      body: payload.body || null,
+      senderId: state.me.uid,
+      attachment: payload.attachment
+        ? { name: payload.attachment.name, mime: payload.attachment.mime } : null,
+      createdAt: Date.now()
+    },
+    updatedAt: Date.now()
+  });
+}
+
+$('attachBtn').onclick = () => $('fileInput').click();
+$('fileInput').onchange = async (e) => {
+  const file = e.target.files?.[0];
+  e.target.value = '';
+  if (!file || !state.activeChatId) return;
+  if (file.size > 15 * 1024 * 1024) return toast('Maks 15 MB', true);
+  toast('Mengunggah…');
+  try {
+    const path = `chats/${state.activeChatId}/${Date.now()}_${file.name}`;
+    const r = storageRef(storage, path);
+    await uploadBytes(r, file);
+    const url = await getDownloadURL(r);
+    await postMessage({
+      body: null,
+      attachment: {
+        url, name: file.name,
+        mime: file.type || 'application/octet-stream',
+        size: file.size
+      }
+    });
+  } catch (err) {
+    toast('Upload gagal: ' + err.message, true);
+  }
+};
+
+$('newChatBtn').onclick = () => {
+  $('newChatModal').classList.remove('hidden');
+  $('userSearchInput').value = '';
+  $('userResults').innerHTML = '<div class="empty-state">Ketik username.</div>';
+  $('userSearchInput').focus();
+};
+$('cancelNewChat').onclick = () => $('newChatModal').classList.add('hidden');
+$('newChatModal').onclick = (e) => {
+  if (e.target === $('newChatModal')) $('newChatModal').classList.add('hidden');
+};
+
+let userSearchTimer = null;
+$('userSearchInput').oninput = (e) => {
+  clearTimeout(userSearchTimer);
+  const term = e.target.value.trim().toLowerCase();
+  if (!term) {
+    $('userResults').innerHTML = '<div class="empty-state">Ketik username.</div>';
+    return;
+  }
+  userSearchTimer = setTimeout(() => searchUsers(term), 220);
+};
+
+async function searchUsers(term) {
+  const box = $('userResults');
+  box.innerHTML = '<div class="empty-state">Mencari…</div>';
+  try {
+    const exactSnap = await get(ref(db, 'usernames/' + term));
+    if (exactSnap.exists()) {
+      const uid = exactSnap.val().uid;
+      if (uid !== state.me.uid) {
+        const uSnap = await get(ref(db, 'users/' + uid));
+        if (uSnap.exists()) {
+          renderUserResults([uSnap.val()]);
+          return;
+        }
+      }
+    }
+    const all = await get(ref(db, 'users'));
+    const rows = [];
+    if (all.exists()) {
+      all.forEach(d => {
+        const u = d.val();
+        if (u.uid === state.me.uid) return;
+        if ((u.usernameLower || '').startsWith(term)) rows.push(u);
+      });
+    }
+    rows.sort((a, b) => (a.usernameLower || '').localeCompare(b.usernameLower || ''));
+    renderUserResults(rows.slice(0, 20));
+  } catch (err) {
+    box.innerHTML = `<div class="empty-state">${escapeHtml(err.message)}</div>`;
+  }
+}
+
+function renderUserResults(rows) {
+  const box = $('userResults');
+  box.innerHTML = '';
+  if (!rows.length) {
+    box.innerHTML = '<div class="empty-state">User tidak ditemukan.</div>';
+    return;
+  }
+  for (const u of rows) {
+    const item = el('div', 'result-item');
+    const av = el('div', 'avatar');
+    if (u.photoURL) av.innerHTML = `<img src="${escapeHtml(u.photoURL)}" alt="" />`;
+    else av.textContent = initials(u.displayName || u.username || '?');
+    const meta = el('div', 'meta');
+    meta.appendChild(el('div', 'name', u.displayName || u.username || 'User'));
+    meta.appendChild(el('div', 'user', '@' + (u.username || 'user')));
+    item.append(av, meta);
+    item.onclick = () => startDirectChat(u);
+    box.appendChild(item);
+  }
+}
+
+async function startDirectChat(peer) {
+  $('newChatModal').classList.add('hidden');
+  const id = chatIdFor(state.me.uid, peer.uid);
+  const exists = await get(ref(db, 'chats/' + id));
+  if (!exists.exists()) {
+    const chat = {
+      kind: 'direct',
+      memberIds: { [state.me.uid]: true, [peer.uid]: true },
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      lastMessage: null,
+      typing: {}
+    };
+    await set(ref(db, 'chats/' + id), chat);
+    await set(ref(db, 'chatsByUser/' + peer.uid + '/' + id), true);
+  }
+  await set(ref(db, 'chatsByUser/' + state.me.uid + '/' + id), true);
+  await openChat(id);
+}
+
+$('meBtn').onclick = () => {
+  $('settingsModal').classList.remove('hidden');
+  $('usernameMsg').textContent = '';
+  $('settingsUsername').value = state.me.username || '';
+  const pp = $('pfpPreview');
+  if (state.me.photoURL) pp.innerHTML = `<img src="${escapeHtml(state.me.photoURL)}" alt="" />`;
+  else pp.textContent = initials(state.me.displayName || state.me.username);
+};
+$('closeSettings').onclick = () => $('settingsModal').classList.add('hidden');
+$('settingsModal').onclick = (e) => {
+  if (e.target === $('settingsModal')) $('settingsModal').classList.add('hidden');
+};
+
+$('pfpUploadBtn').onclick = () => $('pfpInput').click();
+$('pfpInput').onchange = async (e) => {
+  const file = e.target.files?.[0];
+  e.target.value = '';
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) return toast('Maks 5 MB', true);
+  toast('Mengunggah foto…');
+  try {
+    const path = `avatars/${state.me.uid}_${Date.now()}_${file.name}`;
+    const r = storageRef(storage, path);
+    await uploadBytes(r, file);
+    const url = await getDownloadURL(r);
+    await update(ref(db, 'users/' + state.me.uid), { photoURL: url });
+    state.me.photoURL = url;
+    applyMeToSidebar();
+    $('pfpPreview').innerHTML = `<img src="${escapeHtml(url)}" alt="" />`;
+    toast('Foto profil diperbarui.');
+  } catch (err) {
+    toast('Gagal: ' + err.message, true);
+  }
+};
+
+$('saveUsernameBtn').onclick = async () => {
+  const msg = $('usernameMsg');
+  msg.textContent = '';
+  msg.className = 'settings-msg';
+  const newU = $('settingsUsername').value.trim();
+  if (!validUsername(newU)) {
+    msg.textContent = 'Username: huruf/angka/underscore, 3–20 karakter.';
+    msg.classList.add('err');
+    return;
+  }
+  const newLower = newU.toLowerCase();
+  if (newLower === state.me.usernameLower) {
+    msg.textContent = 'Tidak ada perubahan.';
+    msg.classList.add('err');
+    return;
+  }
+  try {
+    const taken = await get(ref(db, 'usernames/' + newLower));
+    if (taken.exists() && taken.val().uid !== state.me.uid) {
+      msg.textContent = 'Username sudah dipakai.';
+      msg.classList.add('err');
+      return;
+    }
+    const oldLower = state.me.usernameLower;
+    await set(ref(db, 'usernames/' + newLower), { uid: state.me.uid });
+    await remove(ref(db, 'usernames/' + oldLower)).catch(() => {});
+    await update(ref(db, 'users/' + state.me.uid), {
+      username: newU,
+      usernameLower: newLower,
+      displayName: newU
+    });
+    await updateProfile(auth.currentUser, { displayName: newU }).catch(() => {});
+    state.me.username = newU;
+    state.me.usernameLower = newLower;
+    state.me.displayName = newU;
+    applyMeToSidebar();
+    msg.textContent = 'Username diperbarui.';
+    msg.classList.add('ok');
+    toast('Username sekarang @' + newU);
+  } catch (err) {
+    msg.textContent = 'Gagal: ' + err.message;
+    msg.classList.add('err');
+  }
+};
+
+const PRESETS = [
+  { id: 'none', label: 'Tanpa', css: null },
+  { id: 'mint', label: 'Mint', css: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 50%, #6ee7b7 100%)' },
+  { id: 'forest', label: 'Forest', css: 'linear-gradient(160deg, #ecfdf5 0%, #a7f3d0 40%, #10b981 100%)' },
+  { id: 'sunrise', label: 'Sunrise', css: 'linear-gradient(135deg, #fef3c7 0%, #a7f3d0 50%, #10b981 100%)' },
+  { id: 'leaf', label: 'Leaf', css: 'linear-gradient(180deg, #f0fdf4 0%, #d1fae5 100%)' }
+];
+
+$('wallpaperBtn').onclick = () => {
+  $('wallpaperModal').classList.remove('hidden');
+  renderWallpaperGrid();
+};
+$('closeWallpaper').onclick = () => $('wallpaperModal').classList.add('hidden');
+$('wallpaperModal').onclick = (e) => {
+  if (e.target === $('wallpaperModal')) $('wallpaperModal').classList.add('hidden');
+};
+
+function currentWallpaperId() {
+  const wp = state.wallpaper;
+  if (!wp) return 'none';
+  if (wp.startsWith('gradient:')) {
+    const css = wp.slice(9).replace(/\|/g, ', ');
+    const found = PRESETS.find(p => p.css === css);
+    return found ? found.id : 'custom';
+  }
+  if (wp.startsWith('data:image/')) return 'custom';
+  return 'none';
+}
+
+function renderWallpaperGrid() {
+  const grid = $('wpGrid');
+  grid.innerHTML = '';
+  const current = currentWallpaperId();
+
+  for (const wp of PRESETS) {
+    const cell = el('div', 'wp-cell' + (wp.id === current ? ' selected' : ''));
+    if (wp.id === 'none') {
+      cell.classList.add('none');
+      cell.textContent = 'Tanpa';
+    } else {
+      cell.style.background = wp.css;
+    }
+    cell.onclick = () => setWallpaper(wp.id === 'none' ? null : ('gradient:' + wp.css.replace(/,\s/g, '|')));
+    grid.appendChild(cell);
+  }
+
+  if (current === 'custom' && state.wallpaper && state.wallpaper.startsWith('data:image/')) {
+    const customCell = el('div', 'wp-cell selected');
+    customCell.style.backgroundImage = `url("${state.wallpaper}")`;
+    customCell.style.backgroundSize = 'cover';
+    customCell.style.backgroundPosition = 'center';
+    customCell.onclick = () => {};
+    grid.appendChild(customCell);
+  }
+
+  const uploadCell = el('div', 'wp-cell upload', '+ Unggah');
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+  input.onchange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) return toast('Maks 2 MB untuk custom', true);
+    const reader = new FileReader();
+    reader.onload = () => {
+      const data = reader.result;
+      if (typeof data === 'string' && data.length > 800000) {
+        toast('Gambar terlalu besar setelah encode.', true);
+        return;
+      }
+      setWallpaper(data);
+    };
+    reader.readAsDataURL(file);
+  };
+  uploadCell.onclick = () => input.click();
+  uploadCell.appendChild(input);
+  grid.appendChild(uploadCell);
+}
+
+async function setWallpaper(wp) {
+  state.wallpaper = wp;
+  applyWallpaper();
+  try {
+    await update(ref(db, 'users/' + state.me.uid), { wallpaper: wp });
+  } catch (err) {
+    toast('Gagal simpan wallpaper: ' + err.message, true);
+  }
+  $('wallpaperModal').classList.add('hidden');
+  toast('Wallpaper diperbarui.');
+}
+
+$('backBtn').onclick = () => {
+  $('app').dataset.view = 'list';
+  state.activeChatId = null;
+  state.unsubMessages?.(); state.unsubMessages = null;
+  state.unsubTyping?.(); state.unsubTyping = null;
+  state.unsubPeer?.(); state.unsubPeer = null;
+  renderChatList();
+};
+
+document.addEventListener('visibilitychange', () => {
+  if (!state.me) return;
+  const onlineRef = ref(db, 'users/' + state.me.uid + '/online');
+  if (document.visibilityState === 'visible') set(onlineRef, true).catch(() => {});
+  else set(onlineRef, false).catch(() => {});
+});
+</script>
+</body>
+</html>
