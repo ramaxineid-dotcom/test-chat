@@ -170,7 +170,7 @@
   .chat-item {
     display: flex; gap: 12px; padding: 12px; cursor: pointer;
     border-radius: 16px; align-items: center;
-    transition: background .15s; margin-bottom: 2px;
+    transition: background .15s; margin-bottom: 2px; position: relative;
   }
   .chat-item:hover { background: rgba(255,255,255,.65); }
   .chat-item.active {
@@ -188,6 +188,15 @@
     gap: 8px; align-items: center; margin-top: 2px; }
   .chat-item .preview { font-size: 13px; color: var(--text-dim);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
+  .chat-item.unread .title { font-weight: 800; }
+  .chat-item.unread .preview { color: var(--text); font-weight: 600; }
+  .chat-item .badge {
+    background: linear-gradient(135deg, #34d399, #059669);
+    color: #fff; font-size: 11px; font-weight: 700;
+    border-radius: 10px; padding: 2px 8px; min-width: 22px;
+    text-align: center; flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(16,185,129,.4);
+  }
   .empty-state { padding: 40px 24px; text-align: center;
     color: var(--text-dim); font-size: 13px; }
 
@@ -263,7 +272,8 @@
   .msg .body a { color: var(--accent-2); text-decoration: underline; }
   .msg .foot { display: flex; justify-content: flex-end; align-items: center;
     gap: 5px; font-size: 10.5px; color: var(--text-dim); margin-top: 3px; }
-  .msg .ticks { font-size: 11px; color: rgba(13,46,34,.35); }
+  .msg .ticks { font-size: 12px; color: rgba(13,46,34,.4);
+    letter-spacing: -2px; font-weight: 700; }
   .msg .ticks.read { color: var(--accent-2); }
   .msg .attach { display: block; max-width: 100%; border-radius: 12px;
     margin: 6px 0 2px; }
@@ -375,6 +385,23 @@
   .settings-msg { font-size: 12px; margin-top: 6px; min-height: 16px; }
   .settings-msg.ok { color: var(--accent-2); }
   .settings-msg.err { color: var(--danger); }
+  .toggle-row { display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 0; border-bottom: 1px solid rgba(16,138,90,.08); }
+  .toggle-row:last-child { border-bottom: 0; }
+  .toggle-row .label { font-size: 14px; font-weight: 600; }
+  .toggle-row .desc { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+  .toggle {
+    position: relative; width: 44px; height: 24px; border-radius: 12px;
+    background: rgba(16,138,90,.2); cursor: pointer; transition: background .2s;
+    flex-shrink: 0;
+  }
+  .toggle.on { background: linear-gradient(135deg, #34d399, #059669); }
+  .toggle::after {
+    content: ''; position: absolute; top: 2px; left: 2px;
+    width: 20px; height: 20px; border-radius: 50%; background: #fff;
+    transition: transform .2s; box-shadow: 0 1px 3px rgba(0,0,0,.2);
+  }
+  .toggle.on::after { transform: translateX(20px); }
 
   .wp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
   .wp-cell {
@@ -397,6 +424,24 @@
   }
   .wp-cell input[type=file] { display: none; }
 
+  .upload-progress {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: rgba(255,255,255,.96); border: 1px solid var(--glass-border);
+    border-radius: 14px; padding: 12px 18px; z-index: 70;
+    box-shadow: var(--shadow-lg); min-width: 260px;
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  }
+  .upload-progress .bar {
+    height: 6px; background: rgba(16,138,90,.15); border-radius: 3px;
+    overflow: hidden; margin-top: 8px;
+  }
+  .upload-progress .fill {
+    height: 100%; background: linear-gradient(90deg, #34d399, #059669);
+    width: 0%; transition: width .2s; border-radius: 3px;
+  }
+  .upload-progress .label { font-size: 12px; font-weight: 600;
+    display: flex; justify-content: space-between; }
+
   #toasts { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
     display: flex; flex-direction: column; gap: 8px; z-index: 60;
     pointer-events: none; align-items: center; }
@@ -410,6 +455,23 @@
     max-width: 90vw; text-align: center; font-weight: 500;
   }
   .toast.err { border-color: rgba(239,68,68,.5); color: var(--danger); }
+
+  #notifPrompt {
+    position: fixed; top: 20px; right: 20px; z-index: 70;
+    background: rgba(255,255,255,.96);
+    border: 1px solid var(--glass-border); border-radius: 16px;
+    padding: 14px 18px; max-width: 320px;
+    box-shadow: var(--shadow-lg); backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  #notifPrompt .msg { font-size: 13px; line-height: 1.4; }
+  #notifPrompt .btns { display: flex; gap: 8px; justify-content: flex-end; }
+  #notifPrompt button {
+    padding: 7px 14px; border-radius: 10px; font-size: 12px; font-weight: 600;
+  }
+  #notifPrompt .allow { background: linear-gradient(135deg, #34d399, #059669); color: #fff; }
+  #notifPrompt .deny { color: var(--text-dim); background: rgba(255,255,255,.6); }
 
   ::-webkit-scrollbar { width: 8px; height: 8px; }
   ::-webkit-scrollbar-thumb { background: rgba(16,138,90,.20); border-radius: 4px; }
@@ -533,7 +595,7 @@
 <div class="modal-backdrop hidden" id="settingsModal">
   <div class="modal">
     <h2>Pengaturan akun</h2>
-    <p class="hint">Ubah foto profil dan username.</p>
+    <p class="hint">Ubah foto profil, username, dan notifikasi.</p>
     <div class="settings-body">
       <div class="settings-section">
         <h3>Foto profil</h3>
@@ -541,7 +603,7 @@
           <div class="pfp-preview" id="pfpPreview">?</div>
           <div>
             <button class="btn-upload" id="pfpUploadBtn">Unggah foto</button>
-            <div style="font-size:11px;color:var(--text-dim);margin-top:6px;">Maks 5 MB · JPG/PNG/WebP</div>
+            <div style="font-size:11px;color:var(--text-dim);margin-top:6px;">Tanpa batas ukuran · JPG/PNG/WebP/GIF</div>
           </div>
           <input type="file" id="pfpInput" class="hidden" accept="image/*" />
         </div>
@@ -558,6 +620,24 @@
         </div>
         <div class="settings-msg" id="usernameMsg"></div>
       </div>
+
+      <div class="settings-section">
+        <h3>Notifikasi</h3>
+        <div class="toggle-row">
+          <div>
+            <div class="label">Notifikasi browser</div>
+            <div class="desc">Tampilkan notifikasi desktop saat pesan masuk</div>
+          </div>
+          <div class="toggle" id="notifToggle"></div>
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div class="label">Suara notifikasi</div>
+            <div class="desc">Bunyi halus saat ada pesan baru</div>
+          </div>
+          <div class="toggle" id="soundToggle"></div>
+        </div>
+      </div>
     </div>
 
     <div class="actions" style="margin-top:16px;">
@@ -569,7 +649,7 @@
 <div class="modal-backdrop hidden" id="wallpaperModal">
   <div class="modal">
     <h2>Wallpaper chat</h2>
-    <p class="hint">Pilih wallpaper atau unggah sendiri.</p>
+    <p class="hint">Pilih preset atau unggah gambar sendiri (tanpa batas ukuran).</p>
     <div class="wp-grid" id="wpGrid"></div>
     <div class="actions" style="margin-top:16px;">
       <button class="btn-ghost" id="closeWallpaper">Tutup</button>
@@ -613,13 +693,18 @@ const state = {
   chats: {},
   activeChatId: null,
   messages: [],
+  unread: {},
   unsubChats: null,
   unsubMessages: null,
   unsubPeer: null,
   unsubTyping: null,
+  unsubMessageWatchers: {},
   wallpaper: null,
   myDisconnect: null,
-  heartbeat: null
+  heartbeat: null,
+  notifEnabled: true,
+  soundEnabled: true,
+  baseTitle: 'wachat'
 };
 
 const $ = (id) => document.getElementById(id);
@@ -648,7 +733,8 @@ function authErrMsg(code) {
     'auth/operation-not-allowed': 'Email/Password belum diaktifkan di Firebase Console.',
     'auth/network-request-failed': 'Koneksi ke Firebase terblokir.',
     'auth/too-many-requests': 'Terlalu banyak percobaan. Tunggu sebentar.',
-    'auth/missing-password': 'Password wajib diisi.'
+    'auth/missing-password': 'Password wajib diisi.',
+    'auth/configuration-not-found': 'Authentication belum diaktifkan di Firebase Console. Buka Authentication → Get started → Email/Password → Enable.'
   };
   return map[code] || code || 'Terjadi kesalahan.';
 }
@@ -692,6 +778,57 @@ function chatIdFor(a, b) {
   return [a, b].sort().join('__');
 }
 
+function playSound() {
+  if (!state.soundEnabled) return;
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.frequency.value = 880;
+    o.type = 'sine';
+    g.gain.setValueAtTime(0.0001, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.15, ctx.currentTime + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.25);
+    o.start();
+    o.stop(ctx.currentTime + 0.26);
+    setTimeout(() => ctx.close(), 400);
+  } catch {}
+}
+
+function updateTitle() {
+  const total = Object.values(state.unread).reduce((a, b) => a + b, 0);
+  document.title = total > 0 ? `(${total}) ${state.baseTitle}` : state.baseTitle;
+}
+
+function showNotification(chatId, senderName, text) {
+  if (!state.notifEnabled) return;
+  if (document.hasFocus() && state.activeChatId === chatId) return;
+  if (!('Notification' in window)) return;
+  if (Notification.permission !== 'granted') return;
+  try {
+    const n = new Notification(senderName, {
+      body: text.slice(0, 120),
+      icon: state.chats[chatId]?.peer?.photoURL || undefined,
+      tag: 'chat-' + chatId,
+      renotify: true,
+      silent: true
+    });
+    n.onclick = () => {
+      window.focus();
+      if (state.chats[chatId]) openChat(chatId);
+      n.close();
+    };
+  } catch {}
+}
+
+async function requestNotifPermission() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'default') {
+    try { await Notification.requestPermission(); } catch {}
+  }
+}
+
 $('toRegister').onclick = () => {
   $('loginForm').classList.add('hidden');
   $('registerForm').classList.remove('hidden');
@@ -708,17 +845,14 @@ $('registerForm').onsubmit = async (e) => {
   const btn = e.target.querySelector('button');
   btn.disabled = true;
   $('regErr').textContent = '';
-
   const email = $('regEmail').value.trim();
   const username = $('regUsername').value.trim();
   const pass = $('regPass').value;
-
   let createdUid = null;
   try {
     if (!validUsername(username))
       throw new Error('Username: huruf/angka/underscore, 3–20 karakter.');
     const unameLower = username.toLowerCase();
-
     const unameSnap = await get(ref(db, 'usernames/' + unameLower));
     if (unameSnap.exists()) throw new Error('Username sudah dipakai.');
 
@@ -799,6 +933,8 @@ onAuthStateChanged(auth, async (user) => {
     state.chats = {};
     state.activeChatId = null;
     state.messages = [];
+    state.unread = {};
+    updateTitle();
     $('app').classList.add('hidden');
     $('auth').classList.remove('hidden');
     return;
@@ -841,6 +977,8 @@ onAuthStateChanged(auth, async (user) => {
   $('app').classList.remove('hidden');
   applyMeToSidebar();
   subscribeChats();
+  subscribeAllUnread();
+  requestNotifPermission();
 });
 
 function applyMeToSidebar() {
@@ -856,6 +994,10 @@ function teardown() {
   state.unsubMessages?.(); state.unsubMessages = null;
   state.unsubPeer?.(); state.unsubPeer = null;
   state.unsubTyping?.(); state.unsubTyping = null;
+  for (const k in state.unsubMessageWatchers) {
+    try { state.unsubMessageWatchers[k](); } catch {}
+  }
+  state.unsubMessageWatchers = {};
   clearInterval(state.heartbeat);
 }
 
@@ -881,7 +1023,46 @@ function subscribeChats() {
     }));
     state.chats = next;
     renderChatList();
+    watchIncomingMessages();
   });
+}
+
+function watchIncomingMessages() {
+  for (const cid of Object.keys(state.unsubMessageWatchers)) {
+    if (!state.chats[cid]) {
+      try { state.unsubMessageWatchers[cid](); } catch {}
+      delete state.unsubMessageWatchers[cid];
+    }
+  }
+  for (const cid of Object.keys(state.chats)) {
+    if (state.unsubMessageWatchers[cid]) continue;
+    const q = query(ref(db, 'messages/' + cid), orderByChild('createdAt'), limitToLast(1));
+    state.unsubMessageWatchers[cid] = onValue(q, (snap) => {
+      if (!snap.exists()) return;
+      let latest = null;
+      snap.forEach(d => { latest = { id: d.key, ...d.val() }; });
+      if (!latest) return;
+      if (latest.senderId === state.me.uid) return;
+      if (state.activeChatId === cid && document.hasFocus()) return;
+      if (state.unread[cid] && state.unread[cid].lastId === latest.id) return;
+      const prev = state.unread[cid] || { count: 0, lastId: null };
+      state.unread[cid] = {
+        count: prev.count + 1,
+        lastId: latest.id,
+        body: latest.body || (latest.attachment ? '📎 Lampiran' : ''),
+        senderName: latest.senderName || 'User',
+        at: latest.createdAt
+      };
+      renderChatList();
+      updateTitle();
+      playSound();
+      showNotification(cid, latest.senderName || 'Pesan baru', latest.body || 'Lampiran');
+    });
+  }
+}
+
+function subscribeAllUnread() {
+  // unread dihitung live dari watchIncomingMessages
 }
 
 function renderChatList() {
@@ -915,8 +1096,10 @@ function renderChatList() {
       : (c.name || 'Grup');
     const handle = c.kind === 'direct' && c.peer?.username
       ? '@' + c.peer.username : '';
+    const unread = state.unread[c.id];
 
-    const item = el('div', 'chat-item' + (c.id === state.activeChatId ? ' active' : ''));
+    const item = el('div', 'chat-item' + (c.id === state.activeChatId ? ' active' : '')
+      + (unread && unread.count > 0 ? ' unread' : ''));
     const av = el('div', 'avatar');
     if (c.kind === 'direct' && c.peer?.photoURL)
       av.innerHTML = `<img src="${escapeHtml(c.peer.photoURL)}" alt="" />`;
@@ -929,12 +1112,16 @@ function renderChatList() {
 
     const row2 = el('div', 'row2');
     let preview = '';
-    if (c.lastMessage) {
+    if (unread && unread.body) {
+      preview = unread.body;
+    } else if (c.lastMessage) {
       const who = c.lastMessage.senderId === state.me.uid ? 'Kamu: ' : '';
       preview = who + (c.lastMessage.body || (c.lastMessage.attachment ? '📎 Lampiran' : ''));
     }
-    row2.appendChild(el('div', 'preview',
-      handle ? handle + ' · ' + (preview || 'Belum ada pesan') : (preview || 'Belum ada pesan')));
+    row2.appendChild(el('div', 'preview', preview || 'Belum ada pesan'));
+    if (unread && unread.count > 0) {
+      row2.appendChild(el('div', 'badge', unread.count > 99 ? '99+' : String(unread.count)));
+    }
 
     meta.append(row1, row2);
     item.append(av, meta);
@@ -948,6 +1135,7 @@ $('searchInput').oninput = renderChatList;
 async function openChat(chatId) {
   state.activeChatId = chatId;
   $('app').dataset.view = 'chat';
+  clearUnread(chatId);
   renderChatList();
 
   const chat = state.chats[chatId];
@@ -976,6 +1164,13 @@ async function openChat(chatId) {
   subscribeTyping(chatId);
 }
 
+function clearUnread(chatId) {
+  if (state.unread[chatId]) {
+    delete state.unread[chatId];
+    updateTitle();
+  }
+}
+
 function applyWallpaper() {
   const box = $('messages');
   const wp = state.wallpaper;
@@ -984,7 +1179,7 @@ function applyWallpaper() {
     box.style.backgroundImage = 'none';
     box.style.background = parts.join(', ');
     box.classList.remove('no-wallpaper');
-  } else if (wp && wp.startsWith('data:image/')) {
+  } else if (wp && (wp.startsWith('data:image/') || wp.startsWith('http'))) {
     box.style.background = '';
     box.style.backgroundImage = `url("${wp}")`;
     box.style.backgroundSize = 'cover';
@@ -1077,8 +1272,10 @@ function renderMessages() {
     const foot = el('div', 'foot');
     foot.appendChild(el('span', '', fmtTime(m.createdAt)));
     if (out) {
-      const ticks = el('span', 'ticks', '✓');
-      if (m.readBy && Object.keys(m.readBy).length > 1) ticks.classList.add('read');
+      const readers = m.readBy ? Object.keys(m.readBy).filter(uid => uid !== m.senderId) : [];
+      const read = readers.length > 0;
+      const ticks = el('span', 'ticks' + (read ? ' read' : ''), read ? '✓✓' : '✓');
+      ticks.title = read ? 'Dibaca' : 'Terkirim';
       foot.appendChild(ticks);
     }
     node.appendChild(foot);
@@ -1091,11 +1288,16 @@ function renderMessages() {
 
 async function markRead(chatId) {
   if (!state.messages.length) return;
-  const last = state.messages[state.messages.length - 1];
-  if (!last || last.senderId === state.me.uid) return;
-  if (last.readBy && last.readBy[state.me.uid]) return;
+  const unread = state.messages.filter(m =>
+    m.senderId !== state.me.uid && !(m.readBy && m.readBy[state.me.uid])
+  );
+  if (!unread.length) return;
+  const updates = {};
+  for (const m of unread) {
+    updates[`messages/${chatId}/${m.id}/readBy/${state.me.uid}`] = true;
+  }
   try {
-    await update(ref(db, `messages/${chatId}/${last.id}/readBy`), { [state.me.uid]: true });
+    await update(ref(db), updates);
   } catch {}
 }
 
@@ -1174,13 +1376,13 @@ $('fileInput').onchange = async (e) => {
   const file = e.target.files?.[0];
   e.target.value = '';
   if (!file || !state.activeChatId) return;
-  if (file.size > 15 * 1024 * 1024) return toast('Maks 15 MB', true);
-  toast('Mengunggah…');
+  const prog = showUploadProgress('Mengunggah lampiran…');
   try {
     const path = `chats/${state.activeChatId}/${Date.now()}_${file.name}`;
     const r = storageRef(storage, path);
     await uploadBytes(r, file);
     const url = await getDownloadURL(r);
+    prog.done();
     await postMessage({
       body: null,
       attachment: {
@@ -1190,9 +1392,27 @@ $('fileInput').onchange = async (e) => {
       }
     });
   } catch (err) {
+    prog.fail();
     toast('Upload gagal: ' + err.message, true);
   }
 };
+
+function showUploadProgress(label) {
+  const wrap = el('div', 'upload-progress');
+  const lbl = el('div', 'label');
+  lbl.appendChild(el('span', '', label));
+  lbl.appendChild(el('span', '', ''));
+  const bar = el('div', 'bar');
+  const fill = el('div', 'fill');
+  bar.appendChild(fill);
+  wrap.appendChild(lbl);
+  wrap.appendChild(bar);
+  document.body.appendChild(wrap);
+  return {
+    done: () => { fill.style.width = '100%'; setTimeout(() => wrap.remove(), 400); },
+    fail: () => { wrap.remove(); }
+  };
+}
 
 $('newChatBtn').onclick = () => {
   $('newChatModal').classList.remove('hidden');
@@ -1295,10 +1515,23 @@ $('meBtn').onclick = () => {
   const pp = $('pfpPreview');
   if (state.me.photoURL) pp.innerHTML = `<img src="${escapeHtml(state.me.photoURL)}" alt="" />`;
   else pp.textContent = initials(state.me.displayName || state.me.username);
+  $('notifToggle').classList.toggle('on', state.notifEnabled);
+  $('soundToggle').classList.toggle('on', state.soundEnabled);
 };
 $('closeSettings').onclick = () => $('settingsModal').classList.add('hidden');
 $('settingsModal').onclick = (e) => {
   if (e.target === $('settingsModal')) $('settingsModal').classList.add('hidden');
+};
+
+$('notifToggle').onclick = async () => {
+  state.notifEnabled = !state.notifEnabled;
+  $('notifToggle').classList.toggle('on', state.notifEnabled);
+  if (state.notifEnabled) await requestNotifPermission();
+};
+
+$('soundToggle').onclick = () => {
+  state.soundEnabled = !state.soundEnabled;
+  $('soundToggle').classList.toggle('on', state.soundEnabled);
 };
 
 $('pfpUploadBtn').onclick = () => $('pfpInput').click();
@@ -1306,8 +1539,7 @@ $('pfpInput').onchange = async (e) => {
   const file = e.target.files?.[0];
   e.target.value = '';
   if (!file) return;
-  if (file.size > 5 * 1024 * 1024) return toast('Maks 5 MB', true);
-  toast('Mengunggah foto…');
+  const prog = showUploadProgress('Mengunggah foto profil…');
   try {
     const path = `avatars/${state.me.uid}_${Date.now()}_${file.name}`;
     const r = storageRef(storage, path);
@@ -1317,8 +1549,10 @@ $('pfpInput').onchange = async (e) => {
     state.me.photoURL = url;
     applyMeToSidebar();
     $('pfpPreview').innerHTML = `<img src="${escapeHtml(url)}" alt="" />`;
+    prog.done();
     toast('Foto profil diperbarui.');
   } catch (err) {
+    prog.fail();
     toast('Gagal: ' + err.message, true);
   }
 };
@@ -1393,7 +1627,7 @@ function currentWallpaperId() {
     const found = PRESETS.find(p => p.css === css);
     return found ? found.id : 'custom';
   }
-  if (wp.startsWith('data:image/')) return 'custom';
+  if (wp.startsWith('data:image/') || wp.startsWith('http')) return 'custom';
   return 'none';
 }
 
@@ -1414,7 +1648,7 @@ function renderWallpaperGrid() {
     grid.appendChild(cell);
   }
 
-  if (current === 'custom' && state.wallpaper && state.wallpaper.startsWith('data:image/')) {
+  if (current === 'custom' && state.wallpaper) {
     const customCell = el('div', 'wp-cell selected');
     customCell.style.backgroundImage = `url("${state.wallpaper}")`;
     customCell.style.backgroundSize = 'cover';
@@ -1430,17 +1664,18 @@ function renderWallpaperGrid() {
   input.onchange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) return toast('Maks 2 MB untuk custom', true);
-    const reader = new FileReader();
-    reader.onload = () => {
-      const data = reader.result;
-      if (typeof data === 'string' && data.length > 800000) {
-        toast('Gambar terlalu besar setelah encode.', true);
-        return;
-      }
-      setWallpaper(data);
-    };
-    reader.readAsDataURL(file);
+    const prog = showUploadProgress('Mengunggah wallpaper…');
+    try {
+      const path = `wallpapers/${state.me.uid}_${Date.now()}_${file.name}`;
+      const r = storageRef(storage, path);
+      await uploadBytes(r, file);
+      const url = await getDownloadURL(r);
+      prog.done();
+      await setWallpaper(url);
+    } catch (err) {
+      prog.fail();
+      toast('Gagal unggah wallpaper: ' + err.message, true);
+    }
   };
   uploadCell.onclick = () => input.click();
   uploadCell.appendChild(input);
@@ -1471,8 +1706,22 @@ $('backBtn').onclick = () => {
 document.addEventListener('visibilitychange', () => {
   if (!state.me) return;
   const onlineRef = ref(db, 'users/' + state.me.uid + '/online');
-  if (document.visibilityState === 'visible') set(onlineRef, true).catch(() => {});
-  else set(onlineRef, false).catch(() => {});
+  if (document.visibilityState === 'visible') {
+    set(onlineRef, true).catch(() => {});
+    if (state.activeChatId) {
+      clearUnread(state.activeChatId);
+      markRead(state.activeChatId);
+    }
+  } else {
+    set(onlineRef, false).catch(() => {});
+  }
+});
+
+window.addEventListener('focus', () => {
+  if (state.activeChatId) {
+    clearUnread(state.activeChatId);
+    markRead(state.activeChatId);
+  }
 });
 </script>
 </body>
